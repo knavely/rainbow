@@ -12,9 +12,9 @@ object Rainbow extends App {
   //color by appending two lists from 1 to n together and then shuffling them
   def color(n:Int):List[Int] = {
     val li = (0 to n-1).toList
-    val colored = scala.util.Random.shuffle(li ++ li)
+    val colored = scala.util.Random.shuffle(li)
 //    println(colored)
-    colored
+    li ++ colored
   }
 
   def subsets(xs: List[Int]): List[List[Int]] = xs match {
@@ -34,15 +34,26 @@ object Rainbow extends App {
 
   def rain(n:Int) = {
 
-    val genList = Gen.containerOfN[List, Int]((n-1), Gen.oneOf(0,1))
-    val genSet = Gen.setOfN(2*n, genList).map{si => si.toList}
+    //def addBasisColors
+    def getStandardBasis() = {
+      (0 until n-1).toList.map {
+        i =>
+        List.tabulate(n-1){
+          k =>
+          if(k == i) 1 else 0
+        }
+      }
+    }
+    val stb = getStandardBasis()
+
+    val genList = Gen.containerOfN[List, Int]((n-1), Gen.oneOf(0,1)).suchThat(li => li.sum > 1)
+
+    val genSet = Gen.setOfN(n + 1, genList).map{si => (si.toList ++ stb).sortBy(l => l.sum)} //sorted so first n-1 are basis
     val genMat = genList.map(li => new DenseMatrix(n-1, 2*n, li.toArray))
 //    val colors = color(n)
 
     val genColors = Gen.containerOfN[List,Int](2*n, arbitrary[Int]).map{l => color(n)}
 
-    //def addBasisColors
-    //def getStandardBasis
 
     def getRainbowSets(colors: List[Int]):List[List[Int]] = {
       val subs = subsets((0 until 2*n).toList).filter(s => s.size <= n/2 && s.size >= 1 && isRainbow(s,colors))
@@ -68,6 +79,6 @@ object Rainbow extends App {
   }
 
   val param = org.scalacheck.Test.Parameters.defaultVerbose.withMaxDiscardRatio(1000000.0f).withMinSuccessfulTests(1)
-  rain(8).check(param)
+  rain(7).check(param)
 }
 
