@@ -11,10 +11,11 @@ object Rainbow extends App {
   import org.scalacheck.ops._
   //color by appending two lists from 1 to n together and then shuffling them
   def color(n:Int):List[Int] = {
-    val li = (0 to n-1).toList
+    val basis = (0 to n-2).toList
+    val li = (n-1) :: (0 to n-1).toList
     val colored = scala.util.Random.shuffle(li)
 //    println(colored)
-    li ++ colored
+    basis ++ colored
   }
 
   def subsets(xs: List[Int]): List[List[Int]] = xs match {
@@ -56,8 +57,10 @@ object Rainbow extends App {
 
 
     def getRainbowSets(colors: List[Int]):List[List[Int]] = {
-      val subs = subsets((0 until 2*n).toList).filter(s => s.size <= n/2 && s.size >= 1 && isRainbow(s,colors))
-      subs
+      val subs = subsets((n until 2*n).toList)
+
+      val rain = subs.filter(s => s.size <= n/2 && s.size >= 1 && isRainbow(s,colors))
+      rain.map(r => (0 until n).toList ++ r)
     }
 
     val prop =
